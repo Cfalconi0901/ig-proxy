@@ -1,28 +1,41 @@
 <!DOCTYPE html>
-<html lang="es">
+<html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>IG Proxy</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #000; }
-        iframe { width: 100%; height: 100%; border: none; }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: #000; overflow: hidden; }
+        .wrapper { display: flex; justify-content: center; align-items: center; height: 100vh; }
+        /* Forzamos que el blockquote ocupe todo para capturar el clic */
+        blockquote { margin: 0 !important; padding: 0 !important; width: 100% !important; min-width: 100% !important; }
     </style>
 </head>
 <body>
+    <div class="wrapper" id="container">
+        <blockquote class="instagram-media" data-instgrm-version="14" id="ig-block">
+            <a id="ig-link"></a>
+        </blockquote>
+    </div>
+
     <script>
         const params = new URLSearchParams(window.location.search);
         const id = params.get('id');
         if (id) {
-            // URL simplificada al máximo para evitar bloqueos de WebKit
-            const url = `https://www.instagram.com/p/${id}/embed/?utm_source=ig_embed&playsinline=1`;
-            const ifr = document.createElement('iframe');
-            ifr.src = url;
-            ifr.setAttribute('allow', 'autoplay; encrypted-media; picture-in-picture');
-            ifr.setAttribute('playsinline', 'true');
-            ifr.setAttribute('webkit-playsinline', 'true');
-            ifr.setAttribute('scrolling', 'no');
-            document.body.appendChild(ifr);
+            // Construimos la URL que el script de IG necesita para "hidratar" el componente
+            document.getElementById('ig-link').href = `https://www.instagram.com/reel/${id}/`;
+            
+            // Cargamos el script oficial pero controlando su ejecución
+            const script = document.createElement('script');
+            script.async = true;
+            script.src = "https://www.instagram.com/embed.js";
+            document.body.appendChild(script);
+
+            // TRUCO MAESTRO: Procesamos el embed manualmente cuando el script carga
+            script.onload = () => {
+                if (window.instgrm) {
+                    window.instgrm.Embeds.process();
+                }
+            };
         }
     </script>
 </body>
